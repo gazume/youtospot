@@ -9,7 +9,7 @@ import api as api
 
 
 
-TEST_SPOTIFY_PLAYLIST_ID = "0jI3WN8zFZTKraTjJzI2KH"
+# TEST_SPOTIFY_PLAYLIST_ID = "0jI3WN8zFZTKraTjJzI2KH"
 # App config
 app = Flask(__name__)
 
@@ -53,12 +53,13 @@ def get_spotify(id):
 
 @app.route('/input', methods =["GET", "POST"])
 def get_input():
-    print(api.post_song_to_playlist_id("0jI3WN8zFZTKraTjJzI2KH"))
+    titles=[]
     if request.method == "POST":
        input = request.form.get("plink")
-       print(input)
-       return get_spotify(input)
-    return render_template("form.html")
+       list_of_vids = api.get_items_from_youtube_playlist_id(input)
+    #    print(list_of_vids[0]['snippet'])
+       titles = [f['snippet']['title'] for f in list_of_vids]
+    return render_template("form.html", ag=titles)
 
 # Checks to see if token is valid and gets a new token if not
 def get_token():
@@ -85,10 +86,11 @@ def get_token():
 
 def create_spotify_oauth():
     return SpotifyOAuth(
-            client_id="367f62522e71473bb56f804debd1b85e",
-            client_secret="5957e304aba146f286d1c879d7e06cc6",
+            client_id=api.spotify_search_data['client_id'],
+            client_secret=api.spotify_search_data['client_secret'],
             redirect_uri=url_for('authorize', _external=True),
             scope="playlist-modify-public")
 
 if __name__ == "__main__":
+  api.get_keys()
   app.run()
