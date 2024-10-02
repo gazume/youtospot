@@ -1,6 +1,15 @@
 <!DOCTYPE html>
-<div>YT to Spot</div>
-<form action="{{ url_for("get_input")}}" method="post">
-<label for="p_link"> Youtube Playlist Link:</label>
-<input type="text" id="p_link" name="plink" placeholder="youtube.com/...">
-<button type="submit">GO</button>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}"> 
+<div class="overall">
+<div class="title">YT to Spot</div>
+    <form action="{{ url_for("get_input")}}" method="post">
+        <label for="p_link"> Youtube Playlist Link:</label>
+        <div class="search-container">    
+            <input class="search-input" type="text" id="p_link" name="plink" placeholder="youtube.com/...">
+            <button class="search-container-button" type="submit">GO</button>
+        </div>
+    </form>
+</div>
