@@ -24,7 +24,7 @@ def get_keys():
         'client_id': default_keys.client_id,
         'client_secret': default_keys.client_secret,
     }
-
+    return spotify_search_data
     
 
 def info_from_id(i):
@@ -43,6 +43,7 @@ def get_items_from_youtube_playlist_id(id):
     print("get_items_from_youtube_playlist_id id -> ", id)
     limit = 10
     response = requests.get(f"https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults={limit}&playlistId={id}&key={key}")
+    
     return response.json()['items']
 # its = get_items_from_playlist_id("PLlc94szfcNDF8iufUTmqxHBnms5XkoUFR")
 
@@ -183,7 +184,8 @@ def authenticate():
 
 def main():
     get_keys()
-    print(spotify_search_data)
+    for i in get_items_from_youtube_playlist_id("PLxRoKEitVdeqU_i2ygY7jrgPlO8HLNwK9"):
+        print(i['snippet']['title'])
     # spotify_token[0] = get_spotify_token()
     # print(get_compiled_song_name_artist_link("PLxRoKEitVdeqU_i2ygY7jrgPlO8HLNwK9"))
 
