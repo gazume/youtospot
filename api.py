@@ -1,5 +1,31 @@
 import requests, json
+from dataclasses import dataclass
 key = "AIzaSyDtrY2uNWkMEvl5pom7hjjbnVfa8EQDSoE"
+
+@dataclass
+class Keys:
+    key: str = ""
+    client_id: str = ""
+    client_secret: str = ""
+
+default_keys = Keys()
+spotify_search_data = {
+    'grant_type': 'client_credentials',
+    'client_id': default_keys.client_id,
+    'client_secret': default_keys.client_secret,
+}
+
+def get_keys():
+    f = open("secret_keys.txt", "r")
+    default_keys = Keys(*f.read().split())
+    global spotify_search_data
+    spotify_search_data = {
+        'grant_type': 'client_credentials',
+        'client_id': default_keys.client_id,
+        'client_secret': default_keys.client_secret,
+    }
+
+    
 
 def info_from_id(i):
     # print(i['id'])
@@ -26,13 +52,6 @@ def get_titles_from_youtube_playlist(id: str) -> list[str]:
     return [i['snippet']['title'] for i in items]
 
 # print(*get_titles_from_playlist("PLxRoKEitVdeog3fXfl7KQit3CTSVvpHrG"), sep = "\n")
-
-
-spotify_search_data = {
-    'grant_type': 'client_credentials',
-    'client_id': '367f62522e71473bb56f804debd1b85e',
-    'client_secret': '5957e304aba146f286d1c879d7e06cc6',
-}
 
 def get_spotify_token():
 
@@ -163,8 +182,10 @@ def authenticate():
 
 
 def main():
-    spotify_token[0] = get_spotify_token()
-    print(get_compiled_song_name_artist_link("PLxRoKEitVdeqU_i2ygY7jrgPlO8HLNwK9"))
+    get_keys()
+    print(spotify_search_data)
+    # spotify_token[0] = get_spotify_token()
+    # print(get_compiled_song_name_artist_link("PLxRoKEitVdeqU_i2ygY7jrgPlO8HLNwK9"))
 
 if __name__ == "__main__":
     main()
