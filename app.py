@@ -9,7 +9,7 @@ import api as api
 
 
 
-# TEST_SPOTIFY_PLAYLIST_ID = "0jI3WN8zFZTKraTjJzI2KH"
+TEST_SPOTIFY_PLAYLIST_ID = "0jI3WN8zFZTKraTjJzI2KH"
 # App config
 app = Flask(__name__)
 
