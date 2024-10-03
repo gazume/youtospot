@@ -3,7 +3,7 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from flask import Flask, url_for, session, request, redirect, render_template
-import json, time, random
+import json, time, random, re
 import pandas as pd
 import api as api
 from implems import get_keys
@@ -76,6 +76,9 @@ def get_input():
     titles=[]
     if request.method == "POST":
         input = request.form.get("plink")
+        input = extract_playlist_id(input)
+        if not input:
+            return "INVALID LINK"
         list_of_vids = api.get_items_from_youtube_playlist_id(input)
         titles = [f['snippet']['title'] for f in list_of_vids]
         try: 
@@ -85,7 +88,6 @@ def get_input():
             return redirect("/")
         sp = spotipy.Spotify(auth=token_info['access_token'])
         uris = []
-        print(len(titles))
         for title in titles:
             m = sp.search(title, 1)
             uris.append(m['tracks']['items'][0]['uri'])
@@ -95,6 +97,27 @@ def get_input():
         respf = sp.user_playlist_add_tracks(user_id, playlist_id, uris, None)
         return redirect(resp['external_urls']['spotify'])
     return render_template("form.html", ag=titles)
+
+@app.route("/create_spotify_playlist/<id>", methods =["POST"])
+def create_spotify_playlist_from(id):
+    list_of_vids = api.get_items_from_youtube_playlist_id(id)
+    titles = [f['snippet']['title'] for f in list_of_vids]
+    try: 
+        token_info = get_token()
+    except:
+        print('User not logged in')
+        return redirect("/")
+    sp = spotipy.Spotify(auth=token_info['access_token'])
+    uris = []
+    for title in titles:
+        m = sp.search(title, 1)
+        uris.append(m['tracks']['items'][0]['uri'])
+    user_id = sp.current_user()['id']
+    resp = sp.user_playlist_create(user_id, "Test", True)
+    playlist_id = resp['id']
+    respf = sp.user_playlist_add_tracks(user_id, playlist_id, uris, None)
+    return resp['external_urls']['spotify']
+
 
 @app.route("/testing/<id>")
 def test_id(id):
@@ -128,6 +151,15 @@ def create_spotify_oauth():
         scope='user-library-read playlist-modify-public playlist-modify-private'
     )
 
+def extract_playlist_id(url):
+    pattern = r"(?:https?://)?(?:www\.)?youtube\.com/playlist\?list=([a-zA-Z0-9_-]+)"
+    
+    match = re.search(pattern, url)
+    
+    if match:
+        return match.group(1)
+    else:
+        return None
 
 if __name__ == "__main__":
   api.get_keys()
