@@ -184,10 +184,7 @@ def authenticate():
 
 def main():
     get_keys()
-    for i in get_items_from_youtube_playlist_id("PLxRoKEitVdeqU_i2ygY7jrgPlO8HLNwK9"):
-        print(i['snippet']['title'])
-    # spotify_token[0] = get_spotify_token()
-    # print(get_compiled_song_name_artist_link("PLxRoKEitVdeqU_i2ygY7jrgPlO8HLNwK9"))
+    print(get_name_url_spotify_link("head like a hole"))
 
 if __name__ == "__main__":
     main()
