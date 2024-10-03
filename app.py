@@ -85,10 +85,21 @@ def get_input():
             return redirect("/")
         sp = spotipy.Spotify(auth=token_info['access_token'])
         uris = []
+        print(len(titles))
         for title in titles:
-            m = sp.search(titles[0], 1)
+            m = sp.search(title, 1)
             uris.append(m['tracks']['items'][0]['uri'])
+        user_id = sp.current_user()['id']
+        resp = sp.user_playlist_create(user_id, "Test", True)
+        playlist_id = resp['id']
+        # respf = sp.user_playlist_add_tracks(user_id, playlist_id, uris, None)
+        return resp
     return render_template("form.html", ag=titles)
+
+@app.route("/testing/<id>")
+def test_id(id):
+    return api.get_items_from_youtube_playlist_id(id)
+
 
 
 @app.route('/get_spotify_playlists', methods =["GET"])
