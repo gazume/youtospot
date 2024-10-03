@@ -6,22 +6,41 @@ from flask import Flask, url_for, session, request, redirect, render_template
 import json, time, random
 import pandas as pd
 import api as api
+from implems import get_keys
 
 
 
-TEST_SPOTIFY_PLAYLIST_ID = "0jI3WN8zFZTKraTjJzI2KH"
-# App config
 app = Flask(__name__)
-
+TOKEN_INFO = 'token_info'
 app.secret_key = ''.join( [str(random.randint(0, 9)) for _ in range(25)] )
 app.config['SESSION_COOKIE_NAME'] = 'spotify-login-session'
 
 @app.route('/')
 def login():
-    sp_oauth = create_spotify_oauth()
-    auth_url = sp_oauth.get_authorize_url()
-    print("auth url : - - >",auth_url)
+    auth_url = create_spotify_oauth().get_authorize_url()
     return redirect(auth_url)
+
+
+@app.route('/redirect')
+def redirect_page():
+    session.clear()
+    code = request.args.get('code')
+    token_info = create_spotify_oauth().get_access_token(code)
+    session[TOKEN_INFO] = token_info
+    return redirect(url_for('get_input',_external=True))
+
+@app.route('/create_list_add')
+def create_lst():
+    try: 
+        token_info = get_token()
+    except:
+        print('User not logged in')
+        return redirect("/")
+    sp = spotipy.Spotify(auth=token_info['access_token'])
+    print(F:=sp.current_user()['id'])
+    ab = sp.user_playlist_create(F, "testCreation", True)
+
+    return ab
 
 @app.route('/authorize')
 def authorize():
@@ -32,6 +51,7 @@ def authorize():
     
     token_info = sp_oauth.get_access_token(code)
     session["token_info"] = token_info
+    print(token_info)
     return redirect("/input")
 
 @app.route('/logout')
@@ -40,7 +60,7 @@ def logout():
         session.pop(key)
     return redirect('/')
 
-@app.route('/get_spotify/<id>/')
+@app.route('/get_spotify_links/<id>/')
 def get_spotify(id):
     PAGE_STRING = ""
     print("id : : - >", id)
@@ -55,41 +75,48 @@ def get_spotify(id):
 def get_input():
     titles=[]
     if request.method == "POST":
-       input = request.form.get("plink")
-       list_of_vids = api.get_items_from_youtube_playlist_id(input)
-    #    print(list_of_vids[0]['snippet'])
-       titles = [f['snippet']['title'] for f in list_of_vids]
+        input = request.form.get("plink")
+        list_of_vids = api.get_items_from_youtube_playlist_id(input)
+        titles = [f['snippet']['title'] for f in list_of_vids]
+        try: 
+            token_info = get_token()
+        except:
+            print('User not logged in')
+            return redirect("/")
+        sp = spotipy.Spotify(auth=token_info['access_token'])
+        uris = []
+        for title in titles:
+            m = sp.search(titles[0], 1)
+            uris.append(m['tracks']['items'][0]['uri'])
     return render_template("form.html", ag=titles)
 
-# Checks to see if token is valid and gets a new token if not
+
+@app.route('/get_spotify_playlists', methods =["GET"])
+def get_spots():
+    return api.get_items_from_playlist_id("4BECQZKtg5DQGbT9wM17BN")
+
 def get_token():
-    token_valid = False
-    token_info = session.get("token_info", {})
-
-    # Checking if the session already has a token stored
-    if not (session.get('token_info', False)):
-        token_valid = False
-        return token_info, token_valid
-
-    # Checking if token has expired
+    token_info = session.get(TOKEN_INFO, None)
+    if not token_info:
+        redirect(url_for('login', _external=False))
+    
     now = int(time.time())
-    is_token_expired = session.get('token_info').get('expires_at') - now < 60
 
-    # Refreshing token if it has expired
-    if (is_token_expired):
-        sp_oauth = create_spotify_oauth()
-        token_info = sp_oauth.refresh_access_token(session.get('token_info').get('refresh_token'))
+    is_expired = token_info['expires_at'] - now < 60
+    if(is_expired):
+        spotify_oauth = create_spotify_oauth()
+        token_info = spotify_oauth.refresh_access_token(token_info['refresh_token'])
 
-    token_valid = True
-    return token_info, token_valid
-
+    return token_info
 
 def create_spotify_oauth():
     return SpotifyOAuth(
-            client_id=api.spotify_search_data['client_id'],
-            client_secret=api.spotify_search_data['client_secret'],
-            redirect_uri=url_for('authorize', _external=True),
-            scope="playlist-modify-public")
+        client_id = get_keys()['client_id'],
+        client_secret = get_keys()['client_secret'],
+        redirect_uri = url_for('redirect_page', _external=True),
+        scope='user-library-read playlist-modify-public playlist-modify-private'
+    )
+
 
 if __name__ == "__main__":
   api.get_keys()
