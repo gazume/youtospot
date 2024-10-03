@@ -92,8 +92,8 @@ def get_input():
         user_id = sp.current_user()['id']
         resp = sp.user_playlist_create(user_id, "Test", True)
         playlist_id = resp['id']
-        # respf = sp.user_playlist_add_tracks(user_id, playlist_id, uris, None)
-        return resp
+        respf = sp.user_playlist_add_tracks(user_id, playlist_id, uris, None)
+        return redirect(resp['external_urls']['spotify'])
     return render_template("form.html", ag=titles)
 
 @app.route("/testing/<id>")
