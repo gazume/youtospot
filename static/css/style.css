@@ -1,9 +1,17 @@
+*{
+    background-color: black;
+}
 .title{
     display: flex;
     justify-content: center;
 }
 .search-container{
     padding-top: 10px;
+    display: flex;
+    justify-content: center;
+}
+.sewitch-img{
+    height: 50px;
 }
 .overall{
     font-family: "Open Sans", system-ui;
